@@ -13,6 +13,9 @@ Supabase와 Vercel을 처음 사용한다면 클릭 순서부터 첫 다운로�
 
 PC가 꺼져 있으면 작업은 Supabase에서 대기하고, 에이전트가 다시 실행되면 오래된 작업부터 처리합니다.
 
+- 완료된 작업은 웹에서 하나 이상 선택해 Supabase 기록만 삭제할 수 있습니다. PC에 저장된 영상·MP3 파일은 지우지 않습니다.
+- PC Agent는 실행할 때마다 `yt-dlp.exe -U`로 안정판 업데이트를 확인합니다. 업데이트 확인이 실패해도 설치된 버전으로 계속 실행합니다.
+
 ## 1. Supabase 준비
 
 1. Supabase 프로젝트를 만듭니다.
@@ -128,6 +131,8 @@ powershell -ExecutionPolicy Bypass -File C:\ydownauto\install-startup.ps1
 - 중복 실행: 에이전트 잠금 파일로 방지
 - 취소: 웹의 취소 요청을 에이전트가 감지해 프로세스 트리 종료
 - 재시작: yt-dlp의 `.part` 파일로 이어받기
+- yt-dlp 업데이트: 에이전트가 시작할 때마다 공식 자체 업데이트(`-U`) 실행
+- 완료 기록 삭제: 웹에서 선택한 `completed` 작업과 연결 이벤트를 Supabase에서 삭제, PC 파일은 유지
 
 ## 개발 및 검사
 

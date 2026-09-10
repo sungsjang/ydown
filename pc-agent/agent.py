@@ -9,6 +9,7 @@ from pathlib import Path
 from api_client import ApiClient, ApiError
 from config import Settings, application_dir
 from downloader import DownloadCancelled, DownloadFailed, execute_job, find_executable
+from updater import update_yt_dlp
 
 VERSION = "1.0"
 
@@ -54,6 +55,7 @@ def run() -> int:
     find_executable(settings.yt_dlp)
     find_executable(settings.ffmpeg)
     find_executable(settings.ffprobe)
+    update_yt_dlp(settings.yt_dlp, settings.base_dir)
     api = ApiClient(settings, VERSION)
     idle_delay = 5
     logging.info("YDown Agent %s started; downloads=%s", VERSION, settings.download_dir)

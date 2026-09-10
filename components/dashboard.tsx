@@ -45,6 +45,8 @@ export function Dashboard() {
   const [data, setData] = useState<JobsResponse>({ jobs: [], agents: [], server_time: new Date(0).toISOString() });
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [selectedCompleted, setSelectedCompleted] = useState<Set<string>>(new Set());
   const [message, setMessage] = useState("");
 
   const loadJobs = useCallback(async () => {
@@ -55,7 +57,11 @@ export function Dashboard() {
         return;
       }
       if (!response.ok) throw new Error("작업 목록을 불러오지 못했습니다.");
-      setData(await response.json());
+      const nextData = await response.json() as JobsResponse;
+      setData(nextData);
+      setSelectedCompleted((current) => new Set(
+        [...current].filter((id) => nextData.jobs.some((job) => job.id === id && job.status === "completed")),
+      ));
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "연결 상태를 확인해 주세요.");
     } finally {
@@ -121,6 +127,11 @@ export function Dashboard() {
     active: data.jobs.filter((job) => ["queued", "claimed", "downloading", "postprocessing"].includes(job.status)).length,
     completed: data.jobs.filter((job) => job.status === "completed").length,
   }), [data.jobs]);
+  const completedIds = useMemo(
+    () => data.jobs.filter((job) => job.status === "completed").map((job) => job.id),
+    [data.jobs],
+  );
+  const allCompletedSelected = completedIds.length > 0 && completedIds.every((id) => selectedCompleted.has(id));
 
   function toggleOutput(output: OutputType) {
     setOutputs((current) => current.includes(output) ? current.filter((item) => item !== output) : [...current, output]);
@@ -148,6 +159,42 @@ export function Dashboard() {
     const body = await response.json();
     if (!response.ok) setMessage(body.error || "요청을 처리하지 못했습니다.");
     await loadJobs();
+  }
+
+  function toggleCompleted(id: string) {
+    setSelectedCompleted((current) => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleAllCompleted() {
+    setSelectedCompleted(allCompletedSelected ? new Set() : new Set(completedIds));
+  }
+
+  async function deleteSelectedCompleted() {
+    const ids = [...selectedCompleted];
+    if (!ids.length || !window.confirm(`선택한 완료 기록 ${ids.length}개를 Supabase에서 삭제할까요?\nPC에 저장된 파일은 삭제되지 않습니다.`)) return;
+    setDeleting(true);
+    setMessage("");
+    try {
+      const response = await fetch("/api/jobs", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids }),
+      });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error || "완료 기록을 삭제하지 못했습니다.");
+      setSelectedCompleted(new Set());
+      setMessage(`${body.deleted_ids.length}개의 완료 기록을 삭제했습니다. PC 파일은 그대로 유지됩니다.`);
+      await loadJobs();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "완료 기록을 삭제하지 못했습니다.");
+    } finally {
+      setDeleting(false);
+    }
   }
 
   async function logout() {
@@ -191,8 +238,12 @@ export function Dashboard() {
 
         <section className="queue-section">
           <div className="section-heading"><div><p className="eyebrow">QUEUE</p><h2>다운로드 작업</h2></div><div className="summary"><span><b>{counts.active}</b> 진행·대기</span><span><b>{counts.completed}</b> 완료</span></div></div>
+          {completedIds.length > 0 && <div className="completed-actions">
+            <label><input type="checkbox" checked={allCompletedSelected} onChange={toggleAllCompleted} />완료 전체 선택</label>
+            <button className="delete-selected-button" disabled={selectedCompleted.size === 0 || deleting} onClick={() => void deleteSelectedCompleted()}>{deleting ? "삭제 중…" : `선택 기록 삭제${selectedCompleted.size ? ` (${selectedCompleted.size})` : ""}`}</button>
+          </div>}
           {loading ? <div className="empty-state">작업 목록을 불러오는 중…</div> : data.jobs.length === 0 ? <div className="empty-state"><strong>아직 등록된 작업이 없습니다.</strong><span>위에 YouTube 주소를 넣어 첫 작업을 보내세요.</span></div> : (
-            <div className="job-list">{data.jobs.map((job) => <JobCard key={job.id} job={job} onAction={jobAction} />)}</div>
+            <div className="job-list">{data.jobs.map((job) => <JobCard key={job.id} job={job} selected={selectedCompleted.has(job.id)} onSelect={toggleCompleted} onAction={jobAction} />)}</div>
           )}
         </section>
       </section>
@@ -200,11 +251,12 @@ export function Dashboard() {
   );
 }
 
-function JobCard({ job, onAction }: { job: Job; onAction: (id: string, action: "cancel" | "retry") => Promise<void> }) {
+function JobCard({ job, selected, onSelect, onAction }: { job: Job; selected: boolean; onSelect: (id: string) => void; onAction: (id: string, action: "cancel" | "retry") => Promise<void> }) {
   const active = ["queued", "claimed", "downloading", "postprocessing"].includes(job.status);
   const label = job.title || (() => { try { return new URL(job.url).hostname + new URL(job.url).pathname; } catch { return job.url; } })();
   return (
-    <article className={`job-card status-${job.status}`}>
+    <article className={`job-card status-${job.status}${selected ? " selected-for-delete" : ""}`}>
+      {job.status === "completed" && <label className="job-select"><input type="checkbox" checked={selected} onChange={() => onSelect(job.id)} /><span>삭제할 기록 선택</span></label>}
       <div className="job-top"><div className="job-title"><span className="job-icon">{job.outputs.includes("video") ? "▶" : "♫"}</span><div><h3>{label}</h3><p>{job.outputs.map((item) => item === "video" ? "영상" : "MP3").join(" + ")} · {job.playlist_mode === "full" ? "플레이리스트" : "영상 하나"}</p></div></div><span className="status-badge">{STATUS_LABEL[job.status]}</span></div>
       {active && <div className="progress-wrap"><div className="progress-label"><span>{job.stage || STATUS_LABEL[job.status]}</span><b>{job.progress}%</b></div><div className="progress-track"><span style={{ width: `${job.progress}%` }} /></div></div>}
       {job.status === "completed" && job.result_files.length > 0 && <p className="result-line">{job.result_files.length}개 파일 저장 완료 · {job.result_files[0]}</p>}

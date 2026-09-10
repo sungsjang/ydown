@@ -63,8 +63,16 @@ fieldset { border: 0; margin: 0; padding: 0; }
 .summary { display: flex; gap: 10px; }
 .summary span { border: 1px solid var(--line); background: rgba(16,29,46,.72); border-radius: 11px; padding: 9px 12px; color: var(--muted); font-size: .78rem; }
 .summary b { color: var(--ink); margin-right: 3px; }
+.completed-actions { display: flex; justify-content: flex-end; align-items: center; gap: 14px; margin: -4px 0 14px; }
+.completed-actions label, .job-select { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: .82rem; cursor: pointer; }
+.completed-actions input, .job-select input { width: 18px; height: 18px; accent-color: var(--accent); cursor: pointer; }
+.delete-selected-button { min-height: 38px; padding: 0 13px; border: 1px solid rgba(255,107,120,.38); border-radius: 10px; background: rgba(255,107,120,.08); color: #ff9ca5; font-size: .82rem; font-weight: 750; }
+.delete-selected-button:hover:not(:disabled) { background: rgba(255,107,120,.16); }
+.delete-selected-button:disabled { opacity: .42; cursor: default; }
 .job-list { display: grid; gap: 12px; }
 .job-card { border: 1px solid var(--line); border-radius: 18px; background: rgba(16,29,46,.84); padding: 18px 20px; box-shadow: 0 10px 32px rgba(0,0,0,.12); }
+.job-card.selected-for-delete { border-color: rgba(255,107,120,.56); box-shadow: inset 0 0 0 1px rgba(255,107,120,.12); }
+.job-select { margin-bottom: 13px; }
 .job-card.status-downloading, .job-card.status-postprocessing { border-color: rgba(53,231,165,.42); }
 .job-card.status-failed { border-color: rgba(255,107,120,.35); }
 .job-top, .job-footer { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; }
@@ -111,6 +119,7 @@ fieldset { border: 0; margin: 0; padding: 0; }
   .options-row fieldset { width: 100%; }
   .segmented { display: grid; grid-template-columns: 1fr 1fr; }
   .section-heading { align-items: flex-start; flex-direction: column; }
+  .completed-actions { justify-content: space-between; }
   .summary { width: 100%; }
   .summary span { flex: 1; text-align: center; }
   .job-card { padding: 16px; }
