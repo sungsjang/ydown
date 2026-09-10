@@ -15,6 +15,10 @@ try {
 
     $Output = Join-Path $AgentRoot "dist\ydown.exe"
     Copy-Item -LiteralPath (Join-Path $AgentRoot ".env.example") -Destination (Join-Path $AgentRoot "dist\.env.example") -Force
+    Copy-Item -LiteralPath (Join-Path $AgentRoot "start-ydown.cmd") -Destination (Join-Path $AgentRoot "dist\start-ydown.cmd") -Force
+    Copy-Item -LiteralPath (Join-Path $AgentRoot "scripts\install-startup.ps1") -Destination (Join-Path $AgentRoot "dist\install-startup.ps1") -Force
+    Copy-Item -LiteralPath (Join-Path $AgentRoot "scripts\uninstall-startup.ps1") -Destination (Join-Path $AgentRoot "dist\uninstall-startup.ps1") -Force
+    Copy-Item -LiteralPath (Join-Path $AgentRoot "..\SETUP_GUIDE_KO.md") -Destination (Join-Path $AgentRoot "dist\SETUP_GUIDE_KO.md") -Force
     Write-Host "빌드 완료: $Output"
 } finally {
     Pop-Location

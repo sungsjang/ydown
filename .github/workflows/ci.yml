@@ -36,6 +36,12 @@ jobs:
         working-directory: pc-agent
       - uses: actions/upload-artifact@v4
         with:
-          name: ydown-windows-1.0
-          path: pc-agent/dist/ydown.exe
+          name: ydown-windows-core-1.0
+          path: |
+            pc-agent/dist/ydown.exe
+            pc-agent/dist/.env.example
+            pc-agent/dist/start-ydown.cmd
+            pc-agent/dist/install-startup.ps1
+            pc-agent/dist/uninstall-startup.ps1
+            pc-agent/dist/SETUP_GUIDE_KO.md
           if-no-files-found: error

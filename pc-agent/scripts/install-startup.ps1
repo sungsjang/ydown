@@ -2,8 +2,14 @@ param(
     [string]$TaskName = "YDown Agent"
 )
 
-$AgentRoot = Split-Path -Parent $PSScriptRoot
-$Runner = Join-Path $AgentRoot "run-agent.cmd"
+$PackagedExe = Join-Path $PSScriptRoot "ydown.exe"
+if (Test-Path -LiteralPath $PackagedExe) {
+    $AgentRoot = $PSScriptRoot
+    $Runner = Join-Path $AgentRoot "start-ydown.cmd"
+} else {
+    $AgentRoot = Split-Path -Parent $PSScriptRoot
+    $Runner = Join-Path $AgentRoot "run-agent.cmd"
+}
 
 if (-not (Test-Path -LiteralPath $Runner)) {
     throw "run-agent.cmd를 찾을 수 없습니다: $Runner"

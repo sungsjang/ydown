@@ -55,23 +55,36 @@ AGENT_TOKEN_HASH
 
 ## 4. Windows PC Agent 설치
 
-미리 만든 Windows 실행 파일은 `pc-agent/dist/ydown.exe`에 생성됩니다. 실행 파일과 같은 폴더에 `.env.example`을 `.env`로 복사하고 설정한 뒤 실행합니다.
-
-```powershell
-cd pc-agent\dist
-Copy-Item .env.example .env
-.\ydown.exe
-```
-
-실행 파일을 다시 빌드하려면:
+운영용 파일은 모두 `C:\ydownauto` 한 폴더에 둡니다. 저장소에서 EXE를 빌드한 뒤 로컬 설치 폴더를 구성합니다.
 
 ```powershell
 cd pc-agent
 python -m pip install pyinstaller
 powershell -ExecutionPolicy Bypass -File .\build-exe.ps1
+powershell -ExecutionPolicy Bypass -File .\assemble-local.ps1 -ToolSource "세 도구가 들어 있는 원본 폴더"
 ```
 
-Python 소스로 직접 실행하려면 아래 절차를 사용합니다.
+완성 구조:
+
+```text
+C:\ydownauto\ydown.exe
+C:\ydownauto\yt-dlp.exe
+C:\ydownauto\ffmpeg.exe
+C:\ydownauto\ffprobe.exe
+C:\ydownauto\.env
+C:\ydownauto\downloads\
+```
+
+`C:\ydownauto\.env`에서 `YDOWN_API_URL`과 `YDOWN_AGENT_TOKEN`을 입력한 뒤 실행합니다.
+
+```powershell
+notepad C:\ydownauto\.env
+C:\ydownauto\ydown.exe
+```
+
+이 구성은 기존 프로그램 폴더와 Python을 실행 시 참조하지 않습니다.
+
+Python 소스로 직접 개발할 때만 아래 절차를 사용합니다.
 
 Python 3.11 이상과 ffmpeg가 필요합니다. PowerShell에서:
 
@@ -89,10 +102,10 @@ Copy-Item .env.example .env
 YDOWN_API_URL=https://내-vercel-주소.vercel.app
 YDOWN_AGENT_TOKEN=비밀값-생성단계의-AGENT_TOKEN
 YDOWN_AGENT_ID=home-windows-pc
-YDOWN_DOWNLOAD_DIR=C:\Users\내계정\Downloads\YDown
+YDOWN_DOWNLOAD_DIR=C:\ydownauto\downloads
 ```
 
-`ffmpeg.exe`가 PATH에 없다면 `YDOWN_FFMPEG`, `YDOWN_FFPROBE`, `YDOWN_FFMPEG_LOCATION`에 실제 경로를 입력합니다.
+세 실행 도구의 경로는 모두 `C:\ydownauto`로 설정합니다.
 
 에이전트 직접 실행:
 
@@ -103,7 +116,7 @@ YDOWN_DOWNLOAD_DIR=C:\Users\내계정\Downloads\YDown
 정상 동작을 확인한 뒤 로그인할 때 자동 실행되도록 등록합니다.
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\install-startup.ps1
+powershell -ExecutionPolicy Bypass -File C:\ydownauto\install-startup.ps1
 ```
 
 ## 다운로드 규칙

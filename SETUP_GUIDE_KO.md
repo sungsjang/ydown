@@ -10,7 +10,7 @@ YDown은 YouTube API를 사용하지 않습니다. Windows PC의 `yt-dlp.exe`, `
 2. 비밀번호로 로그인하고 YouTube 주소와 저장 형식을 선택합니다.
 3. 작업이 Supabase에 대기 상태로 저장됩니다.
 4. 집의 `ydown.exe`가 작업을 가져갑니다.
-5. 파일이 `C:\Users\sungs\Downloads\YDown` 같은 PC 폴더에 저장됩니다.
+5. 파일이 `C:\ydownauto\downloads`에 저장됩니다.
 
 Vercel과 Supabase는 외부에서 접속할 수 있고, 집 PC는 밖에서 들어오는 연결을 받을 필요가 없습니다. 따라서 공유기 포트 포워딩이나 고정 IP가 필요하지 않습니다.
 
@@ -21,15 +21,15 @@ Vercel과 Supabase는 외부에서 접속할 수 있고, 집 PC는 밖에서 들
 - Vercel 계정
 - 집에서 계속 켜 둘 Windows PC
 - 이 GitHub 저장소: <https://github.com/sungsjang/ydown>
-- PC에 있는 `yt-dlp.exe`, `ffmpeg.exe`, `ffprobe.exe`
+- `C:\ydownauto`를 만들 수 있는 Windows 관리자 권한
 
-현재 PC에는 아래 세 파일이 이미 있습니다.
+PC에서 실행할 때 필요한 파일은 모두 아래 한 폴더에 모읍니다.
 
 ```text
-C:\Users\sungs\Desktop\자작프로그램모음\중식-mp3다운로더\yt-dlp.exe
-C:\Users\sungs\Desktop\자작프로그램모음\중식-mp3다운로더\ffmpeg.exe
-C:\Users\sungs\Desktop\자작프로그램모음\중식-mp3다운로더\ffprobe.exe
+C:\ydownauto
 ```
+
+설치가 끝난 뒤 YDown은 기존 프로그램 폴더나 Python 설치 폴더를 참조하지 않습니다.
 
 중요: Supabase와 Vercel의 무료 사용량 및 정책은 바뀔 수 있습니다. 가입 화면에 표시되는 요금제와 한도를 확인한 뒤 진행하세요.
 
@@ -185,54 +185,64 @@ Vercel 공식 문서도 환경변수 변경은 기존 배포에 적용되지 않
 
 ## 7단계: ydown.exe 1.0 준비하기
 
-이 PC에서 만든 실행 파일은 다음 위치에 있습니다.
+이 PC에는 완성된 실행 폴더가 다음 위치에 준비됩니다.
 
 ```text
-C:\Users\sungs\Documents\영단어 학습 프로그램\ydown\pc-agent\dist\ydown.exe
+C:\ydownauto
+├─ ydown.exe
+├─ yt-dlp.exe
+├─ ffmpeg.exe
+├─ ffprobe.exe
+├─ .env
+├─ .env.example
+├─ start-ydown.cmd
+├─ install-startup.ps1
+├─ uninstall-startup.ps1
+├─ SETUP_GUIDE_KO.md
+└─ downloads\
 ```
 
-파일 속성의 세부 정보에서 파일 버전과 제품 버전이 모두 `1.0`으로 표시됩니다. 이 실행 파일은 Python이 없는 Windows PC에서도 실행할 수 있습니다.
+`ydown.exe`의 파일 속성에서 파일 버전과 제품 버전이 모두 `1.0`으로 표시됩니다. Python이 설치되지 않은 Windows PC에서도 이 폴더만 있으면 실행할 수 있습니다. 세 도구도 이 폴더 안에 복사되어 있으므로 기존 다운로드 프로그램 폴더는 실행 중에 사용하지 않습니다.
 
-직접 다시 만들고 싶다면 PowerShell에서 다음을 실행합니다.
+개발 저장소에서 실행 파일을 다시 빌드하고 `C:\ydownauto`를 다시 구성하려면 다음을 실행합니다.
 
 ```powershell
 cd "C:\Users\sungs\Documents\영단어 학습 프로그램\ydown\pc-agent"
 python -m pip install pyinstaller
 powershell -ExecutionPolicy Bypass -File .\build-exe.ps1
+powershell -ExecutionPolicy Bypass -File .\assemble-local.ps1 -ToolSource "세 도구가 들어 있는 원본 폴더"
 ```
 
-GitHub에서도 새 코드가 push될 때 Windows용 실행 파일을 만듭니다. GitHub 저장소의 **Actions → 최신 CI 실행 → Artifacts → ydown-windows-1.0**에서 받을 수 있습니다. Actions 산출물에는 `ydown.exe`가 들어 있습니다.
+`assemble-local.ps1`은 지정한 원본에서 세 도구를 한 번 복사하고 필요한 파일을 `C:\ydownauto`에 모읍니다. 설치가 끝난 뒤에는 원본 폴더를 참조하지 않습니다. 이미 작성한 `C:\ydownauto\.env`가 있으면 덮어쓰지 않습니다.
 
-## 8단계: PC 에이전트의 .env 만들기
+GitHub에서도 새 코드가 push될 때 Windows 핵심 파일을 만듭니다. GitHub 저장소의 **Actions → 최신 CI 실행 → Artifacts → ydown-windows-core-1.0**에서 받을 수 있습니다. 저작권과 배포 출처가 다른 `yt-dlp.exe`, `ffmpeg.exe`, `ffprobe.exe`는 로컬 설치 폴더에 별도로 함께 두어야 합니다.
 
-`ydown.exe`와 같은 `dist` 폴더에 설정 파일을 만듭니다.
+## 8단계: C:\ydownauto\.env 설정하기
 
-1. 아래 파일을 복사합니다.
+`C:\ydownauto\.env` 파일은 이미 만들어져 있습니다. 이 파일에서 두 값만 입력하면 됩니다.
 
-```text
-원본: pc-agent\dist\.env.example
-복사본: pc-agent\dist\.env
-```
-
-PowerShell로 하려면:
+PowerShell에서 메모장으로 엽니다.
 
 ```powershell
-cd "C:\Users\sungs\Documents\영단어 학습 프로그램\ydown\pc-agent\dist"
-Copy-Item .env.example .env
-notepad .env
+notepad C:\ydownauto\.env
 ```
 
-2. `.env`를 다음과 같이 수정합니다. Vercel 주소와 `AGENT_TOKEN`은 자신의 값으로 바꾸세요.
+다음 두 줄의 `=` 뒤에 실제 값을 넣습니다.
 
 ```text
 YDOWN_API_URL=https://내-프로젝트.vercel.app
 YDOWN_AGENT_TOKEN=1단계에서-만든-AGENT_TOKEN-원문
+```
+
+나머지는 아래처럼 `C:\ydownauto` 기준으로 이미 설정되어 있으므로 바꾸지 않아도 됩니다.
+
+```text
 YDOWN_AGENT_ID=home-windows-pc
-YDOWN_DOWNLOAD_DIR=C:\Users\sungs\Downloads\YDown
-YDOWN_YTDLP=C:\Users\sungs\Desktop\자작프로그램모음\중식-mp3다운로더\yt-dlp.exe
-YDOWN_FFMPEG=C:\Users\sungs\Desktop\자작프로그램모음\중식-mp3다운로더\ffmpeg.exe
-YDOWN_FFPROBE=C:\Users\sungs\Desktop\자작프로그램모음\중식-mp3다운로더\ffprobe.exe
-YDOWN_FFMPEG_LOCATION=C:\Users\sungs\Desktop\자작프로그램모음\중식-mp3다운로더
+YDOWN_DOWNLOAD_DIR=C:\ydownauto\downloads
+YDOWN_YTDLP=C:\ydownauto\yt-dlp.exe
+YDOWN_FFMPEG=C:\ydownauto\ffmpeg.exe
+YDOWN_FFPROBE=C:\ydownauto\ffprobe.exe
+YDOWN_FFMPEG_LOCATION=C:\ydownauto
 YDOWN_MAX_PLAYLIST_ITEMS=50
 YDOWN_IDLE_POLL_SECONDS=30
 ```
@@ -253,7 +263,7 @@ YDOWN_IDLE_POLL_SECONDS=30
 오류 메시지를 볼 수 있도록 처음에는 더블클릭보다 PowerShell 실행을 권장합니다.
 
 ```powershell
-cd "C:\Users\sungs\Documents\영단어 학습 프로그램\ydown\pc-agent\dist"
+cd C:\ydownauto
 .\ydown.exe
 ```
 
@@ -271,7 +281,7 @@ YDown Agent 1.0 started
 4. 처음에는 **MP3** 또는 **영상** 하나만 선택합니다.
 5. 다운로드 작업을 등록합니다.
 6. 웹에서 상태가 대기 → 다운로드 중 → 완료로 변하는지 봅니다.
-7. `C:\Users\sungs\Downloads\YDown`에 파일이 생겼는지 확인합니다.
+7. `C:\ydownauto\downloads`에 파일이 생겼는지 확인합니다.
 
 에이전트를 수동으로 멈추려면 PowerShell 창에서 `Ctrl+C`를 누릅니다.
 
@@ -280,8 +290,8 @@ YDown Agent 1.0 started
 수동 시험이 성공한 뒤 PowerShell을 열어 다음을 실행합니다.
 
 ```powershell
-cd "C:\Users\sungs\Documents\영단어 학습 프로그램\ydown\pc-agent"
-powershell -ExecutionPolicy Bypass -File .\scripts\install-startup.ps1
+cd C:\ydownauto
+powershell -ExecutionPolicy Bypass -File .\install-startup.ps1
 ```
 
 Windows 작업 스케줄러에 `YDown Agent`가 등록되고 바로 시작됩니다. 확인 방법:
@@ -294,7 +304,13 @@ Windows 작업 스케줄러에 `YDown Agent`가 등록되고 바로 시작됩니
 로그는 다음 파일에 누적됩니다.
 
 ```text
-C:\Users\sungs\Documents\영단어 학습 프로그램\ydown\pc-agent\dist\logs\agent.log
+C:\ydownauto\logs\agent.log
+```
+
+자동 실행을 제거하려면 다음을 실행합니다.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File C:\ydownauto\uninstall-startup.ps1
 ```
 
 ## 11단계: 아이폰에서 쓰기 편하게 만들기
@@ -326,7 +342,7 @@ C:\Users\sungs\Documents\영단어 학습 프로그램\ydown\pc-agent\dist\logs\
 더블클릭하지 말고 PowerShell에서 실행하면 오류가 보입니다.
 
 ```powershell
-cd "C:\Users\sungs\Documents\영단어 학습 프로그램\ydown\pc-agent\dist"
+cd C:\ydownauto
 .\ydown.exe
 ```
 
@@ -338,11 +354,11 @@ cd "C:\Users\sungs\Documents\영단어 학습 프로그램\ydown\pc-agent\dist"
 - `ydown.exe`가 실행 중인지 확인합니다.
 - `.env`의 `YDOWN_API_URL`이 실제 Vercel 주소인지 확인합니다.
 - `.env`의 `AGENT_TOKEN`과 Vercel의 `AGENT_TOKEN_HASH`가 같은 생성 결과의 한 쌍인지 확인합니다.
-- `dist\logs\agent.log`를 확인합니다.
+- `C:\ydownauto\logs\agent.log`를 확인합니다.
 
 ### yt-dlp 또는 ffmpeg를 찾을 수 없다고 나옴
 
-`.env`의 `YDOWN_YTDLP`, `YDOWN_FFMPEG`, `YDOWN_FFPROBE`, `YDOWN_FFMPEG_LOCATION`에 위의 실제 절대 경로를 넣었는지 확인합니다.
+`C:\ydownauto` 안에 `yt-dlp.exe`, `ffmpeg.exe`, `ffprobe.exe`가 모두 있는지 확인합니다. `.env`의 네 경로도 모두 `C:\ydownauto`로 시작해야 합니다.
 
 ### Windows가 알 수 없는 게시자라고 경고함
 
@@ -362,9 +378,9 @@ cd "C:\Users\sungs\Documents\영단어 학습 프로그램\ydown\pc-agent\dist"
 - [ ] `database/schema.sql`을 SQL Editor에서 실행했다.
 - [ ] Vercel에 GitHub의 `sungsjang/ydown`을 Import했다.
 - [ ] Vercel 환경변수 5개를 입력하고 배포했다.
-- [ ] `pc-agent\dist\ydown.exe`의 버전이 1.0이다.
-- [ ] `dist\.env`를 만들고 Vercel 주소와 AGENT_TOKEN을 입력했다.
-- [ ] yt-dlp, ffmpeg, ffprobe의 실제 경로를 입력했다.
+- [ ] `C:\ydownauto`에 필요한 파일이 모두 모여 있다.
+- [ ] `C:\ydownauto\ydown.exe`의 버전이 1.0이다.
+- [ ] `C:\ydownauto\.env`에 Vercel 주소와 AGENT_TOKEN을 입력했다.
+- [ ] yt-dlp, ffmpeg, ffprobe가 `C:\ydownauto` 안에 있다.
 - [ ] 수동 다운로드 시험에 성공했다.
 - [ ] Windows 자동 실행을 등록했다.
-
