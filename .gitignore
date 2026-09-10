@@ -1,0 +1,15 @@
+node_modules/
+.next/
+out/
+.vercel/
+.env
+.env.local
+.env.*.local
+*.log
+pc-agent/.env
+pc-agent/logs/
+pc-agent/state/
+pc-agent/__pycache__/
+pc-agent/**/*.pyc
+.DS_Store
+Thumbs.db
