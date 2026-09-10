@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -25,6 +26,13 @@ def required(name: str) -> str:
     return value
 
 
+def application_dir() -> Path:
+    """Return the folder containing the script or packaged executable."""
+    if getattr(sys, "frozen", False):
+        return Path(sys.executable).resolve().parent
+    return Path(__file__).resolve().parent
+
+
 @dataclass(frozen=True)
 class Settings:
     api_url: str
@@ -41,7 +49,7 @@ class Settings:
 
     @classmethod
     def load(cls, base_dir: Path | None = None) -> "Settings":
-        root = (base_dir or Path(__file__).resolve().parent).resolve()
+        root = (base_dir or application_dir()).resolve()
         load_dotenv(root / ".env")
         max_items = max(1, min(500, int(os.environ.get("YDOWN_MAX_PLAYLIST_ITEMS", "50"))))
         poll = max(5, min(300, int(os.environ.get("YDOWN_IDLE_POLL_SECONDS", "30"))))

@@ -2,6 +2,8 @@
 
 아이폰이나 외부 브라우저에서 YouTube 주소를 등록하면 내 Windows PC가 `yt-dlp`와 `ffmpeg`로 영상 또는 MP3를 내려받는 개인용 작업함입니다. YouTube API를 사용하지 않으며 PC에 인바운드 포트를 열지 않습니다.
 
+Supabase와 Vercel을 처음 사용한다면 클릭 순서부터 첫 다운로드 시험까지 설명한 **[YDown 1.0 처음 설치 매뉴얼](SETUP_GUIDE_KO.md)**을 먼저 따라 하세요.
+
 ## 구성
 
 - **Vercel**: Next.js 웹 화면과 인증된 API
@@ -15,7 +17,7 @@ PC가 꺼져 있으면 작업은 Supabase에서 대기하고, 에이전트가 �
 
 1. Supabase 프로젝트를 만듭니다.
 2. SQL Editor에서 [`database/schema.sql`](database/schema.sql)을 실행합니다.
-3. Project Settings에서 Project URL과 `service_role` 키를 확인합니다.
+3. Connect/API Keys에서 Project URL과 서버용 Secret key(또는 구형 `service_role` 키)를 확인합니다.
 
 테이블은 RLS가 활성화되어 있고 공개 정책이 없습니다. `service_role` 키는 Vercel 서버 환경변수에만 저장해야 합니다.
 
@@ -52,6 +54,24 @@ AGENT_TOKEN_HASH
 설정 후 배포합니다. 로컬 개발용 값은 `.env.example`을 `.env.local`로 복사해 입력합니다.
 
 ## 4. Windows PC Agent 설치
+
+미리 만든 Windows 실행 파일은 `pc-agent/dist/ydown.exe`에 생성됩니다. 실행 파일과 같은 폴더에 `.env.example`을 `.env`로 복사하고 설정한 뒤 실행합니다.
+
+```powershell
+cd pc-agent\dist
+Copy-Item .env.example .env
+.\ydown.exe
+```
+
+실행 파일을 다시 빌드하려면:
+
+```powershell
+cd pc-agent
+python -m pip install pyinstaller
+powershell -ExecutionPolicy Bypass -File .\build-exe.ps1
+```
+
+Python 소스로 직접 실행하려면 아래 절차를 사용합니다.
 
 Python 3.11 이상과 ffmpeg가 필요합니다. PowerShell에서:
 

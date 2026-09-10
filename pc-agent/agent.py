@@ -7,10 +7,10 @@ import time
 from pathlib import Path
 
 from api_client import ApiClient, ApiError
-from config import Settings
+from config import Settings, application_dir
 from downloader import DownloadCancelled, DownloadFailed, execute_job, find_executable
 
-VERSION = "0.1.0"
+VERSION = "1.0"
 
 
 class SingleInstance:
@@ -105,7 +105,7 @@ def run() -> int:
 
 if __name__ == "__main__":
     try:
-        root = Path(__file__).resolve().parent
+        root = application_dir()
         with SingleInstance(root / "state" / "agent.lock"):
             raise SystemExit(run())
     except Exception as exc:

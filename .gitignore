@@ -11,5 +11,7 @@ pc-agent/logs/
 pc-agent/state/
 pc-agent/__pycache__/
 pc-agent/**/*.pyc
+pc-agent/build/
+pc-agent/dist/
 .DS_Store
 Thumbs.db
