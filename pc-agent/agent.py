@@ -4,12 +4,14 @@ import logging
 import os
 import sys
 import time
+import threading
 from pathlib import Path
 
 from api_client import ApiClient, ApiError
 from config import Settings, application_dir
 from downloader import DownloadCancelled, DownloadFailed, execute_job, find_executable
 from updater import update_yt_dlp
+from search_worker import run_search_worker
 
 VERSION = "1.0"
 
@@ -57,6 +59,20 @@ def run() -> int:
     find_executable(settings.ffprobe)
     update_yt_dlp(settings.yt_dlp, settings.base_dir)
     api = ApiClient(settings, VERSION)
+    stop = threading.Event()
+    worker = threading.Thread(target=run_search_worker, args=(ApiClient(settings, VERSION), stop), daemon=True)
+    worker.start()
+    try:
+        return run_downloads(settings, api)
+    except KeyboardInterrupt:
+        logging.info("Agent stopped")
+        return 0
+    finally:
+        stop.set()
+        worker.join(timeout=30)
+
+
+def run_downloads(settings: Settings, api: ApiClient) -> int:
     idle_delay = 5
     logging.info("YDown Agent %s started; downloads=%s", VERSION, settings.download_dir)
 

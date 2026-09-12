@@ -15,11 +15,13 @@ PC가 꺼져 있으면 작업은 Supabase에서 대기하고, 에이전트가 �
 
 - 완료된 작업은 웹에서 하나 이상 선택해 Supabase 기록만 삭제할 수 있습니다. PC에 저장된 영상·MP3 파일은 지우지 않습니다.
 - PC Agent는 실행할 때마다 `yt-dlp.exe -U`로 안정판 업데이트를 확인합니다. 업데이트 확인이 실패해도 설치된 버전으로 계속 실행합니다.
+- **YouTube 검색** 탭에서 검색하고, 결과를 선택해 영상·MP3 다운로드를 등록할 수 있습니다. 검색도 PC의 yt-dlp로 처리하므로 검색 지원 버전의 `ydown.exe`가 실행 중이어야 합니다.
 
 ## 1. Supabase 준비
 
 1. Supabase 프로젝트를 만듭니다.
 2. SQL Editor에서 [`database/schema.sql`](database/schema.sql)을 실행합니다.
+   이어서 검색 기능용 [`database/search.sql`](database/search.sql)을 실행합니다. 기존 설치는 `search.sql`만 추가 실행하면 됩니다.
 3. Connect/API Keys에서 Project URL과 서버용 Secret key(또는 구형 `service_role` 키)를 확인합니다.
 
 테이블은 RLS가 활성화되어 있고 공개 정책이 없습니다. `service_role` 키는 Vercel 서버 환경변수에만 저장해야 합니다.
@@ -134,11 +136,22 @@ powershell -ExecutionPolicy Bypass -File C:\ydownauto\install-startup.ps1
 - yt-dlp 업데이트: 에이전트가 시작할 때마다 공식 자체 업데이트(`-U`) 실행
 - 완료 기록 삭제: 웹에서 선택한 `completed` 작업과 연결 이벤트를 Supabase에서 삭제, PC 파일은 유지
 
+## YouTube 검색 사용법
+
+1. PC에서 최신 YDown 실행파일을 실행합니다. 새 환경변수는 필요하지 않습니다.
+2. 웹페이지의 **YouTube 검색** 탭에 검색어를 입력합니다.
+3. 최대 20개 결과에서 영상·MP3 저장 형식을 고릅니다.
+4. 개별 **다운로드**, 또는 체크 후 **선택 영상 다운로드**를 누릅니다.
+5. 기존 작업 목록에서 진행 상태를 확인합니다. 파일은 기존 `YDOWN_DOWNLOAD_DIR`에 저장됩니다.
+
+검색은 다운로드와 별도 작업으로 처리됩니다. PC가 꺼져 있으면 검색을 시작할 수 없으며, 오래된 실행파일은 검색을 지원하지 않습니다. 검색은 분당 6회, 동시에 대기·실행 중인 요청은 3개까지 허용합니다. 실시간 방송·방송 예정 결과는 제외합니다. 검색 결과는 24시간 후 만료되고, 실행 중인 검색 에이전트가 다음 확인 시 정리합니다. 검색 결과를 다시 내려받으려면 재검색하세요. 동일 검색·영상·저장 형식의 반복 등록은 하나의 작업으로 처리합니다.
+
 ## 개발 및 검사
 
 ```powershell
 npm run dev
 npm run lint
+npm run test:db
 npm run build
 python -m unittest discover -s pc-agent/tests -v
 ```

@@ -17,6 +17,28 @@ html { color-scheme: dark; background: var(--bg); }
 body { margin: 0; min-height: 100vh; color: var(--ink); background: radial-gradient(circle at 88% -10%, rgba(53,231,165,.13), transparent 34rem), var(--bg); font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif; }
 button, input { font: inherit; }
 button { cursor: pointer; }
+[hidden] { display: none !important; }
+.input-tabs { margin-bottom: 16px; }
+.search-help { color: var(--muted); font-size: .9rem; line-height: 1.6; }
+.search-toolbar, .search-bulk { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+.search-toolbar { justify-content: space-between; margin-top: 24px; }
+.search-bulk .job-select { margin: 0; }
+.search-results { display: grid; gap: 12px; }
+.search-result { display: grid; grid-template-columns: 24px 180px 1fr auto; align-items: center; gap: 16px; border: 1px solid var(--line); border-radius: 16px; padding: 14px; background: var(--panel); }
+.search-check input { width: 20px; height: 20px; padding: 0; accent-color: var(--accent); }
+.search-thumbnail { position: relative; display: block; overflow: hidden; border-radius: 8px; }
+.search-thumbnail img { width: 100%; height: auto; display: block; aspect-ratio: 16/9; object-fit: cover; }
+.search-thumbnail span { position: absolute; right: 4px; bottom: 4px; background: #000d; color: white; border-radius: 4px; padding: 2px 5px; font-size: .875rem; }
+.search-description { min-width: 0; }
+.search-description h3 { margin: 0 0 8px; font-size: 1rem; line-height: 1.5; }
+.search-description p { margin: 0; color: var(--muted); font-size: .875rem; }
+.search-download { border: 1px solid var(--accent); background: transparent; color: var(--accent); border-radius: 10px; padding: 12px; }
+.search-download:disabled { opacity: .5; cursor: default; }
+@media (max-width: 680px) {
+  .search-result { grid-template-columns: 24px 100px 1fr; gap: 10px; }
+  .search-download { grid-column: 2 / -1; }
+  .search-toolbar, .search-bulk { align-items: stretch; flex-direction: column; width: 100%; }
+}
 
 .app-shell { min-height: 100vh; }
 .topbar { height: 76px; padding: 0 max(24px, calc((100vw - 1080px)/2)); display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(143,160,181,.18); background: rgba(8,17,31,.72); backdrop-filter: blur(18px); position: sticky; top: 0; z-index: 10; }

@@ -3,6 +3,7 @@
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { AgentInfo, Job, OutputType, PlaylistMode } from "@/lib/types";
+import { YoutubeSearch } from "@/components/youtube-search";
 
 declare global {
   interface Document {
@@ -40,6 +41,7 @@ function formatDate(value: string): string {
 export function Dashboard() {
   const router = useRouter();
   const [url, setUrl] = useState("");
+  const [inputMode, setInputMode] = useState<"url" | "search">("url");
   const [outputs, setOutputs] = useState<OutputType[]>(["video", "mp3"]);
   const [playlistMode, setPlaylistMode] = useState<PlaylistMode>("single");
   const [data, setData] = useState<JobsResponse>({ jobs: [], agents: [], server_time: new Date(0).toISOString() });
@@ -216,7 +218,12 @@ export function Dashboard() {
           <div className={`agent-pill ${agentOnline ? "online" : "offline"}`}><span className="status-dot" />{agentOnline ? "PC 온라인" : "PC 오프라인"}<small>{timeAgo(activeAgent?.last_seen_at ?? null, serverNow)}</small></div>
         </div>
 
-        <form className="request-card" onSubmit={submit}>
+        <div className="segmented input-tabs" aria-label="다운로드 방법">
+          <button aria-pressed={inputMode === "url"} className={inputMode === "url" ? "selected" : ""} onClick={() => setInputMode("url")}>주소로 다운로드</button>
+          <button aria-pressed={inputMode === "search"} className={inputMode === "search" ? "selected" : ""} onClick={() => setInputMode("search")}>YouTube 검색</button>
+        </div>
+        <div hidden={inputMode !== "search"}><YoutubeSearch onQueued={loadJobs} /></div>
+        <form hidden={inputMode !== "url"} className="request-card" onSubmit={submit}>
           <label htmlFor="youtube-url">YouTube 주소</label>
           <div className="url-row">
             <input id="youtube-url" type="url" inputMode="url" placeholder="https://youtu.be/…" value={url} onChange={(event) => setUrl(event.target.value)} required />

@@ -48,6 +48,19 @@ class ApiClient:
         })
         return DownloadJob.from_dict(result["job"]) if result.get("job") else None
 
+    def claim_search(self) -> dict[str, Any] | None:
+        return self._request("POST", "/api/agent/search", {
+            "agent_id": self.settings.agent_id, "version": self.version,
+        }).get("search")
+
+    def search_heartbeat(self) -> None:
+        self._request("PUT", "/api/agent/search", {"agent_id": self.settings.agent_id})
+
+    def finish_search(self, search_id: str, payload: dict[str, Any]) -> None:
+        self._request("PATCH", "/api/agent/search", {
+            "id": search_id, "agent_id": self.settings.agent_id, **payload,
+        })
+
     def update(self, job_id: str, action: str, **fields: Any) -> dict[str, Any]:
         return self._request("PATCH", f"/api/agent/jobs/{job_id}", {
             "agent_id": self.settings.agent_id,
