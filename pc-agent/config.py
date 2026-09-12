@@ -15,7 +15,9 @@ def load_dotenv(path: Path) -> None:
             continue
         key, value = line.split("=", 1)
         key = key.strip()
-        if key and key not in os.environ:
+        # The portable installation's .env is the source of truth. This avoids
+        # stale machine/user environment variables overriding a moved setup.
+        if key:
             os.environ[key] = value.strip().strip('"').strip("'")
 
 

@@ -9,6 +9,7 @@ from unittest.mock import MagicMock, patch
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from search_worker import normalize_results, search_youtube, run_search_worker
 from models import DownloadJob
+from config import load_dotenv
 
 
 class SearchTests(unittest.TestCase):
@@ -83,6 +84,16 @@ class SearchTests(unittest.TestCase):
         for url in ["https://localhost/file", "--exec=bad", "https://youtube.com.evil.test/x", "https://user:pass@youtube.com/watch?v=abcdefghijk"]:
             with self.assertRaises(ValueError):
                 DownloadJob.from_dict({"id": "job", "url": url, "outputs": ["mp3"], "playlist_mode": "single"})
+
+    def test_dotenv_overrides_stale_process_environment(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / ".env"
+            path.write_text("YDOWN_DOWNLOAD_DIR=Y:\\YouTube\n", encoding="utf-8")
+            import os
+            os.environ["YDOWN_DOWNLOAD_DIR"] = r"\\old-server\\YouTube"
+            load_dotenv(path)
+            self.assertEqual(os.environ["YDOWN_DOWNLOAD_DIR"], r"Y:\YouTube")
 
 
 if __name__ == "__main__":
